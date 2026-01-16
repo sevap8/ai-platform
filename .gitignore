@@ -1,0 +1,90 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.o
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Processed documents cache
+.cache/
+.temp/
+
+# Local configuration
+config/local.yml
+*.local
+
+# Python dependency management
+poetry.lock
+Pipfile
+Pipfile.lock
+
+# uv cache
+.uv-cache/
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Coverage
+.coverage.*
+
+# Local SQLite databases
+*.db
+*.db-journal
+
+# Local Qdrant data
+qdrant_storage/
