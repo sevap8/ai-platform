@@ -59,26 +59,6 @@ class VectorStoreInterface(ABC):
         pass
 
 
-class DocumentProcessorInterface(ABC):
-    """
-    Abstract interface for document processing operations.
-    
-    This interface defines the contract for document processing implementations,
-    allowing for different parsers and processors.
-    """
-    
-    @abstractmethod
-    async def process_document(self, file_path: str) -> List[Document]:
-        """
-        Process a document file and extract its content.
-        
-        Args:
-            file_path: Path to the document file
-            
-        Returns:
-            List of extracted documents
-        """
-        pass
 
 
 class StorageManagerInterface(ABC):

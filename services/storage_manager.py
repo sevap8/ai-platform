@@ -8,7 +8,7 @@ different components of the application.
 from typing import List
 from core.interfaces import StorageManagerInterface, VectorStoreInterface
 from core.entities import Document, QueryResult
-from utils.document_processor import DocumentProcessingService, SimpleDocumentProcessor
+from utils.document_processor import process_uploaded_file
 
 
 class StorageManager(StorageManagerInterface):
@@ -24,9 +24,6 @@ class StorageManager(StorageManagerInterface):
         Initialize the storage manager.
         """
         self.vector_store: VectorStoreInterface = None  # Will be initialized later
-        self.document_processor_service = DocumentProcessingService(
-            SimpleDocumentProcessor()
-        )
 
     async def initialize(self):
         """
@@ -34,6 +31,7 @@ class StorageManager(StorageManagerInterface):
         """
         from vector_store.qdrant_impl import QdrantVectorStore
         self.vector_store = QdrantVectorStore()
+        await self.vector_store._ensure_collection_exists()
 
     async def store_document_from_file(self, file, document_id: str) -> bool:
         """
@@ -50,10 +48,8 @@ class StorageManager(StorageManagerInterface):
         file_data = await file.read()
         filename = file.filename
 
-        # Process the document
-        documents = await self.document_processor_service.process_uploaded_file(
-            file_data, filename
-        )
+        # Process the document using the simplified function
+        documents = await process_uploaded_file(file_data, filename)
 
         # Add processed documents to vector store
         success = True

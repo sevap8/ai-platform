@@ -11,6 +11,20 @@ from core.entities import UploadResponse, RetrieveResponse, QueryResult
 from services.storage_manager import StorageManager
 
 
+# Global variable to hold the storage manager instance
+storage_manager = None
+
+
+def get_storage_manager():
+    """
+    Get the storage manager instance, initializing it if necessary.
+    """
+    global storage_manager
+    if storage_manager is None:
+        storage_manager = StorageManager()
+    return storage_manager
+
+
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
@@ -24,8 +38,13 @@ def create_app() -> FastAPI:
         version="1.0.0"
     )
 
-    # Initialize services
-    storage_manager = StorageManager()
+    @app.on_event("startup")
+    async def startup():
+        """
+        Initialize services when the application starts.
+        """
+        sm = get_storage_manager()
+        await sm.initialize()
 
     @app.post("/upload", response_model=UploadResponse)
     async def upload_document(file: UploadFile = File(...)):
@@ -42,9 +61,11 @@ def create_app() -> FastAPI:
             # Generate unique document ID
             document_id = str(uuid.uuid4())
 
+            # Get the storage manager instance
+            sm = get_storage_manager()
+
             # Save file temporarily and process it
-            # (Actual implementation will be added later)
-            success = await storage_manager.store_document_from_file(file, document_id)
+            success = await sm.store_document_from_file(file, document_id)
 
             if success:
                 return UploadResponse(
@@ -58,23 +79,6 @@ def create_app() -> FastAPI:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    @app.post("/retrieve", response_model=RetrieveResponse)
-    async def retrieve_documents(query: str, top_k: int = 5):
-        """
-        Retrieve documents based on a query.
-
-        Args:
-            query: The search query
-            top_k: Number of top results to return (default: 5)
-
-        Returns:
-            RetrieveResponse with matching documents
-        """
-        try:
-            results = await storage_manager.retrieve_documents(query, top_k)
-            return RetrieveResponse(results=results, query=query)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
 
     @app.get("/health")
     async def health_check():

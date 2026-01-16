@@ -16,7 +16,8 @@ ai-platform/
 ├── vector_store/           # Vector storage implementations
 │   └── qdrant_impl.py
 ├── utils/                  # Utility functions
-│   └── document_processor.py
+│   ├── document_processor.py
+│   └── file_loader.py      # LangChain-compatible file loader
 ├── main.py                 # Application entry point
 ├── README.md               # This file
 ├── pyproject.toml          # Project configuration for uv
@@ -54,6 +55,8 @@ ai-platform/
 2. **Extensible Design**: Easy to add new vector stores, document processors, etc.
 3. **Production Ready**: Includes proper error handling, configuration management, and health checks
 4. **API Ready**: Pre-configured FastAPI endpoints for document upload and retrieval
+5. **Multi-format Support**: Handles various file formats including PDF, Excel, text files, JSON, YAML, XML, and more
+6. **LangChain Integration**: Built with LangChain compatibility for advanced document processing
 
 ## Usage
 
