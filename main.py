@@ -5,8 +5,7 @@ This module initializes the application and sets up all required services.
 """
 
 import asyncio
-from api import app
-from config.settings import get_settings
+from api.routers import app
 from services.storage_manager import StorageManager
 
 
@@ -20,8 +19,7 @@ async def startup_event():
     Initialize services when the application starts.
     """
     global storage_manager
-    settings = get_settings()
-    storage_manager = StorageManager(settings)
+    storage_manager = StorageManager()
     await storage_manager.initialize()
 
 

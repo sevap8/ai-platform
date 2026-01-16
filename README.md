@@ -7,29 +7,20 @@ This is a production-ready framework for an AI Platform built with LangChain and
 ```
 ai-platform/
 ├── api/                    # API layer with FastAPI endpoints
-│   ├── __init__.py
 │   └── routers.py
 ├── core/                   # Core entities and interfaces
-│   ├── __init__.py
-│   ├── entities.py         # Data models
+│   ├── entities.py         # Core data models
 │   └── interfaces.py       # Abstract interfaces
 ├── services/               # Business logic services
-│   ├── __init__.py
 │   └── storage_manager.py
 ├── vector_store/           # Vector storage implementations
-│   ├── __init__.py
 │   └── qdrant_impl.py
-├── config/                 # Configuration management
-│   ├── __init__.py
-│   └── settings.py
 ├── utils/                  # Utility functions
-│   ├── __init__.py
 │   └── document_processor.py
-├── models/                 # ML/AI models (placeholder)
-│   └── __init__.py
 ├── main.py                 # Application entry point
 ├── README.md               # This file
-├── requirements.txt        # Python dependencies
+├── pyproject.toml          # Project configuration for uv
+├── .env.example            # Example environment variables
 └── __init__.py             # Package initialization
 ```
 
@@ -66,17 +57,37 @@ ai-platform/
 
 ## Usage
 
-1. Install dependencies:
+1. Copy the environment variables file:
 ```bash
-pip install -r requirements.txt
+cp .env.example .env
 ```
 
-2. Run the application:
+Then update the values in `.env` as needed.
+
+2. Install dependencies using uv:
 ```bash
-python -m ai_platform.main
+uv sync
 ```
 
-The API will be available at `http://localhost:8000`.
+Or install directly:
+```bash
+uv pip install langchain qdrant-client fastapi uvicorn pydantic python-multipart
+```
+
+3. Run the application:
+```bash
+uv run uvicorn main:app --reload
+```
+
+The API will be available at `http://127.0.0.1:8000`.
+
+## API Documentation
+
+After starting the application, you can access:
+
+- `http://127.0.0.1:8000/docs` - Interactive API documentation (Swagger UI)
+- `http://127.0.0.1:8000/redoc` - Alternative API documentation (ReDoc)
+- `http://127.0.0.1:8000/health` - Health check endpoint
 
 ## API Endpoints
 
@@ -86,7 +97,7 @@ The API will be available at `http://localhost:8000`.
 
 ## Configuration
 
-Application settings are managed in `config/settings.py` and can be overridden using environment variables or a `.env` file.
+Application settings are managed through environment variables defined in the `.env` file.
 
 Key settings include:
 - Qdrant connection parameters
