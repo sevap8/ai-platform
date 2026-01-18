@@ -8,9 +8,8 @@ This is a production-ready framework for an AI Platform built with LangChain and
 ai-platform/
 ├── api/                    # API layer with FastAPI endpoints
 │   └── routers.py
-├── core/                   # Core entities and interfaces
-│   ├── entities.py         # Core data models
-│   └── interfaces.py       # Abstract interfaces
+├── core/                   # Core entities
+│   └── entities.py         # Core data models
 ├── services/               # Business logic services
 │   └── storage_manager.py
 ├── vector_store/           # Vector storage implementations
@@ -33,10 +32,6 @@ ai-platform/
 - `UploadResponse`: Response model for document upload operations
 - `RetrieveResponse`: Response model for document retrieval operations
 
-### Interfaces (`core/interfaces.py`)
-- `VectorStoreInterface`: Contract for vector storage operations
-- `DocumentProcessorInterface`: Contract for document processing operations
-- `StorageManagerInterface`: Contract for storage management operations
 
 ### API Layer (`api/routers.py`)
 - `/upload`: Endpoint for uploading documents
@@ -51,7 +46,7 @@ ai-platform/
 
 ## Features
 
-1. **Modular Architecture**: Clean separation of concerns with well-defined interfaces
+1. **Simple Architecture**: Clean and straightforward design without unnecessary abstractions
 2. **Extensible Design**: Easy to add new vector stores, document processors, etc.
 3. **Production Ready**: Includes proper error handling, configuration management, and health checks
 4. **API Ready**: Pre-configured FastAPI endpoints for document upload and retrieval

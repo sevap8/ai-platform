@@ -6,12 +6,11 @@ different components of the application.
 """
 
 from typing import List
-from core.interfaces import StorageManagerInterface, VectorStoreInterface
 from core.entities import Document, QueryResult
 from utils.document_processor import process_uploaded_file
 
 
-class StorageManager(StorageManagerInterface):
+class StorageManager:
     """
     Main service class that manages document storage and retrieval operations.
 
@@ -23,7 +22,7 @@ class StorageManager(StorageManagerInterface):
         """
         Initialize the storage manager.
         """
-        self.vector_store: VectorStoreInterface = None  # Will be initialized later
+        self.vector_store = None  # Will be initialized later
 
     async def initialize(self):
         """
@@ -86,3 +85,14 @@ class StorageManager(StorageManagerInterface):
             List of matching documents with scores
         """
         return await self.vector_store.search(query, top_k)
+
+    async def close(self):
+        """
+        Close resources used by the storage manager.
+
+        This method handles cleanup of connections and resources.
+        """
+        if hasattr(self.vector_store, 'client') and self.vector_store.client:
+            # Close the Qdrant client if it has a close method
+            if hasattr(self.vector_store.client, 'close'):
+                await self.vector_store.client.close()

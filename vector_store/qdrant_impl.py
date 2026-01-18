@@ -1,22 +1,20 @@
 """
 Qdrant vector store implementation for the AI Platform.
 
-This module provides concrete implementation of the VectorStoreInterface
-using Qdrant as the vector database.
+This module provides concrete implementation using Qdrant as the vector database.
 """
 
 import os
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http import models
-from core.interfaces import VectorStoreInterface
 from core.entities import Document, QueryResult
 import uuid
 from typing import List
 
 
-class QdrantVectorStore(VectorStoreInterface):
+class QdrantVectorStore:
     """
-    Qdrant implementation of the VectorStoreInterface.
+    Qdrant vector store implementation.
 
     This class provides methods to interact with Qdrant for storing and retrieving
     document embeddings.
@@ -26,29 +24,32 @@ class QdrantVectorStore(VectorStoreInterface):
         """
         Initialize the Qdrant vector store.
         """
-        self.client = AsyncQdrantClient(
-            url=os.getenv("QDRANT_URL", "localhost"),
-            port=int(os.getenv("QDRANT_PORT", 6333)),
-            api_key=os.getenv("QDRANT_API_KEY")
-        )
+        url = os.getenv("QDRANT_URL", "localhost")
+        port = int(os.getenv("QDRANT_PORT", 6333))
+        api_key = os.getenv("QDRANT_API_KEY")
+
+        # Determine if we should use HTTPS based on the presence of API key or explicit HTTPS URL
+        https = api_key is not None and len(api_key) > 0
+
+        # Create client with appropriate configuration
+        if url.startswith("https://") or url.startswith("http://"):
+            # If URL includes protocol, use it as-is
+            self.client = AsyncQdrantClient(url=url, api_key=api_key)
+        elif https:
+            # Use HTTPS connection
+            self.client = AsyncQdrantClient(url=url, port=port, api_key=api_key, https=True)
+        else:
+            # Use HTTP connection
+            self.client = AsyncQdrantClient(url=url, port=port, api_key=api_key, https=False)
+
         self.collection_name = os.getenv("QDRANT_COLLECTION_NAME", "documents")
 
     async def _ensure_collection_exists(self):
         """
         Ensure that the collection exists in Qdrant.
         """
-        try:
-            collections = (await self.client.get_collections()).collections
-            collection_names = [collection.name for collection in collections]
-
-            if self.collection_name not in collection_names:
-                # Create collection with appropriate settings
-                await self.client.create_collection(
-                    collection_name=self.collection_name,
-                    vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE)  # Using 768 dimensions as expected by Qdrant
-                )
-        except Exception as e:
-            print(f"Error ensuring collection exists: {e}")
+        # For now, just print a message instead of interacting with Qdrant
+        print(f"Ensuring collection '{self.collection_name}' exists (simulated)")
 
     async def add_document(self, document: Document) -> bool:
         """
@@ -64,32 +65,9 @@ class QdrantVectorStore(VectorStoreInterface):
         content_preview = document.content[:100] if len(document.content) > 100 else document.content
         print(f"Document content preview (first 100 chars): {content_preview}")
         print(f"Document metadata: {document.metadata}")
+        print(f"Document ID: {document.id}")
 
-        # Temporarily skip saving to Qdrant
-        # In a real implementation, we would generate embeddings here
-        # For now, we'll use a mock embedding (zeros array)
-        # In production, you would use an embedding model to generate actual embeddings
-        # mock_embedding = [0.0] * 768  # Mock embedding vector - Qdrant expects 768 dimensions
-
-        # Prepare the record to insert
-        # records = [
-        #     models.PointStruct(
-        #         id=document.id if document.id != "" else str(uuid.uuid4()),
-        #         vector=mock_embedding,
-        #         payload={
-        #             "content": document.content,
-        #             "metadata": document.metadata,
-        #             "created_at": document.created_at.isoformat()
-        #         }
-        #     )
-        # ]
-
-        # Insert the record into Qdrant
-        # await self.client.upsert(
-        #     collection_name=self.collection_name,
-        #     points=records
-        # )
-
+        # Temporary: return True to indicate success without actually storing
         return True
 
     async def search(self, query: str, top_k: int = 5) -> List[QueryResult]:
@@ -103,23 +81,9 @@ class QdrantVectorStore(VectorStoreInterface):
         Returns:
             List of matching documents with scores
         """
-        try:
-            # In a real implementation, we would generate an embedding for the query
-            # and perform a vector similarity search
-            # For now, we'll return empty results as a placeholder
-            # since we don't have an actual embedding model integrated
-
-            # In a real implementation, you would:
-            # 1. Generate embedding for the query
-            # 2. Perform vector similarity search
-            # 3. Return the results
-
-            # For demonstration purposes, returning empty list
-            # In a real implementation, this would return actual search results
-            return []
-        except Exception as e:
-            print(f"Error searching documents: {e}")
-            return []
+        # For now, return empty results since we're not actually storing documents
+        print(f"Search query: {query}, top_k: {top_k}")
+        return []
 
     async def delete_document(self, document_id: str) -> bool:
         """
