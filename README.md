@@ -14,15 +14,35 @@ ai-platform/
 │   └── storage_manager.py
 ├── vector_store/           # Vector storage implementations
 │   └── qdrant_impl.py
-├── utils/                  # Utility functions
-│   ├── document_processor.py
+├── infrastructure/         # Infrastructure components
 │   └── file_loader.py      # LangChain-compatible file loader
+├── processors/             # Data processing components
+│   └── file_processor.py   # File processing utilities
 ├── main.py                 # Application entry point
 ├── README.md               # This file
 ├── pyproject.toml          # Project configuration for uv
 ├── .env.example            # Example environment variables
 └── __init__.py             # Package initialization
 ```
+
+## Project Architecture
+
+The project is organized based on principles of modularity and separation of concerns. Each layer has a clear purpose and dependencies, which simplifies maintenance and extension of the code.
+
+### Directory Structure
+
+- `core` — contains entities and base classes representing the domain.
+- `api` — presentation layer, request routing.
+- `services` — business logic layer, coordinating work between different components.
+- `infrastructure` — infrastructure layer, providing interaction with external systems and databases.
+- `processors` — data processing layer, specific to the application.
+- `utils` — utility functions for general use, used in different parts of the application.
+
+### Design Principles
+
+- **Separation of Concerns**: each layer is responsible for its own functional area.
+- **Modularity**: components are easily replaceable and reusable.
+- **Flexibility and Scalability**: the architecture allows for easy addition of new features without disrupting existing logic.
 
 ## Key Components
 

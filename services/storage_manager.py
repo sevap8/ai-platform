@@ -7,7 +7,7 @@ different components of the application.
 
 from typing import List
 from core.entities import Document, QueryResult
-from utils.document_processor import process_uploaded_file
+from processors.file_processor import process_uploaded_file
 
 
 class StorageManager:
@@ -47,7 +47,7 @@ class StorageManager:
         file_data = await file.read()
         filename = file.filename
 
-        # Process the document using the simplified function
+        # Process the document using the simplified function'
         documents = await process_uploaded_file(file_data, filename)
 
         # Add processed documents to vector store

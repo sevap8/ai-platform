@@ -1,8 +1,7 @@
 """
-Simplified document processing for the AI Platform.
+File processing utilities for the AI Platform.
 
-This module provides a streamlined approach to document processing without
-unnecessary abstractions.
+This module handles file uploads and conversion to Document entities.
 """
 
 from typing import List
@@ -10,7 +9,7 @@ import tempfile
 import os
 from pathlib import Path
 from core.entities import Document
-from .file_loader import FileLoader
+from infrastructure.file_loader import FileLoader
 
 
 async def process_uploaded_file(file_data: bytes, filename: str) -> List[Document]:
