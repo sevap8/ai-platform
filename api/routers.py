@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 import uuid
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
+from utils.file_validator import validate_file_for_upload
 
 from core.entities import UploadResponse, RetrieveResponse
 from services.storage_manager import StorageManager
@@ -48,6 +49,9 @@ async def upload_document(
     Upload a document to the system.
     """
     try:
+        # Validate the uploaded file
+        validate_file_for_upload(file)
+
         document_id = str(uuid.uuid4())
 
         storage_manager: StorageManager = request.app.state.storage_manager

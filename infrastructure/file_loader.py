@@ -9,6 +9,7 @@ from typing import List, Optional, Union
 from pathlib import Path
 import pandas as pd
 from io import StringIO, BytesIO
+import tempfile
 import unicodedata
 from openpyxl import load_workbook
 import orjson
@@ -22,6 +23,9 @@ from pdfminer.utils import open_filename
 import xlrd
 from langchain_core.documents import Document
 from langchain_community.document_loaders.base import BaseLoader
+from uuid import uuid4
+import zipfile
+
 
 
 class FileLoader(BaseLoader):
@@ -50,22 +54,22 @@ class FileLoader(BaseLoader):
             laparams: Layout parameters for PDF text extraction
         """
         self.file_path = Path(file_path)
-        self.file_uuid = file_uuid or str(file_path)
+        self.file_uuid = file_uuid or str(uuid4())
         self.password = password
         self.maxpages = maxpages
         self.caching = caching
         self.codec = codec
         self.laparams = laparams or LAParams()
 
-    def extract_excel_to_md(self, file_path: str) -> str:
+    def extract_excel_to_md(self, file_path: str) -> dict:
         """
         Extract content from Excel file and return it in Markdown format.
-        
+
         Args:
             file_path: Path to the Excel file (.xlsx or .xls)
-        
+
         Returns:
-            str: Content of the file in Markdown format
+            dict: Dictionary containing content of the file in Markdown format and UUID
         """
         file_name = self.file_path.name
         all_md_content = ""
@@ -86,7 +90,7 @@ class FileLoader(BaseLoader):
                 md_content = f"## Sheet: {sheet_name}\n\n"
                 md_content += "| " + " | ".join(str(col) for col in cols) + " |\n"
                 md_content += "| " + " | ".join(["---"] * len(cols)) + " |\n"
-                
+
                 for index, row in df.iterrows():
                     md_content += (
                         "| "
@@ -106,7 +110,7 @@ class FileLoader(BaseLoader):
                 md_content = f"## {sheet_name}\n\n"
                 md_content += "| " + " | ".join(df.columns) + " |\n"
                 md_content += "| " + " | ".join(["---"] * len(df.columns)) + " |\n"
-                
+
                 for _, row in df.iterrows():
                     md_content += (
                         "| "
@@ -118,17 +122,20 @@ class FileLoader(BaseLoader):
         else:
             raise ValueError(f"Unsupported file extension: {file_extension}")
 
-        return all_md_content
+        return {
+            "content": all_md_content,
+            "file_uuid": self.file_uuid
+        }
 
-    def parse_pdf_to_text(self, file_path: str) -> List[str]:
+    def parse_pdf_to_text(self, file_path: str) -> List[dict]:
         """
         Parse PDF file and extract text.
-        
+
         Args:
             file_path: Path to the PDF file.
-        
+
         Returns:
-            List of strings, each representing text from a page.
+            List of dictionaries, each containing text, page number, and UUID from a page.
         """
         texts = []
         with open_filename(file_path, "rb") as fp:
@@ -146,45 +153,49 @@ class FileLoader(BaseLoader):
                     interpreter.process_page(page)
                     page_text = output_string.getvalue()
                     normalized_text = unicodedata.normalize("NFKD", page_text).replace('\n\n','\n')
-                    texts.append(normalized_text)
-        
+                    texts.append({
+                        "text": normalized_text,
+                        "page_num": idx,
+                        "file_uuid": self.file_uuid
+                    })
+
         return texts
 
     def load(self) -> List[Document]:
         """
         Load and process the file based on its type.
-        
+
         Returns:
             List of LangChain Document objects
         """
         file_ext = self.file_path.suffix.lower()
-        
+
         if file_ext == ".pdf":
             texts = self.parse_pdf_to_text(str(self.file_path))
             docs = []
-            for i, text in enumerate(texts):
+            for text_data in texts:
                 docs.append(Document(
-                    page_content=text,
+                    page_content=text_data["text"],
                     metadata={
                         "source": str(self.file_path),
-                        "page": i,
-                        "file_uuid": self.file_uuid
+                        "page": text_data["page_num"],
+                        "file_uuid": text_data["file_uuid"]
                     }
                 ))
             return docs
         elif file_ext in [".xlsx", ".xls"]:
-            content = self.extract_excel_to_md(str(self.file_path))
+            excel_data = self.extract_excel_to_md(str(self.file_path))
             return [Document(
-                page_content=content,
+                page_content=excel_data["content"],
                 metadata={
                     "source": str(self.file_path),
-                    "file_uuid": self.file_uuid
+                    "file_uuid": excel_data["file_uuid"]
                 }
             )]
         elif file_ext in ['.txt', '.py', '.js', '.ts', '.jsx', '.tsx', '.csv', '.json', '.yaml', '.yml', '.xml']:
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            
+
             # Handle structured formats
             if file_ext == '.json':
                 parsed_data = orjson.loads(content)
@@ -195,7 +206,7 @@ class FileLoader(BaseLoader):
             elif file_ext == '.xml':
                 xml_element = ElementTree.fromstring(content)
                 content = ElementTree.tostring(xml_element, encoding="unicode")
-            
+
             return [Document(
                 page_content=content,
                 metadata={
@@ -203,5 +214,40 @@ class FileLoader(BaseLoader):
                     "file_uuid": self.file_uuid
                 }
             )]
+        elif file_ext == ".zip":
+            return self.load_zip_archive(str(self.file_path))
         else:
+            # For unsupported file types, return a more graceful error
             raise ValueError(f"Unsupported file extension: {file_ext}")
+
+    def load_zip_archive(self, file_path: str) -> List[Document]:
+        """
+        Load and process files from a ZIP archive.
+
+        Args:
+            file_path: Path to the ZIP archive.
+
+        Returns:
+            List of LangChain Document objects
+        """
+        all_docs = []
+        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            for file_info in zip_ref.filelist:
+                if not file_info.is_dir():  # Skip directories
+                    with zip_ref.open(file_info.filename) as file_in_zip:
+                        # Create a temporary file to work with
+                        file_extension = Path(file_info.filename).suffix
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+                            tmp_file.write(file_in_zip.read())
+                            tmp_file_path = tmp_file.name
+
+                    # Process the temporary file using FileLoader
+                    loader = FileLoader(file_path=tmp_file_path)
+                    docs = loader.load()
+                    all_docs.extend(docs)
+
+                    # Clean up the temporary file
+                    import os
+                    os.unlink(tmp_file_path)
+
+        return all_docs

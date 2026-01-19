@@ -6,8 +6,9 @@ different components of the application.
 """
 
 from typing import List
+from fastapi import HTTPException
 from core.entities import Document, QueryResult
-from processors.file_processor import process_uploaded_file
+from processors.file_processor import process_uploaded_file, FileProcessor
 
 
 class StorageManager:
@@ -48,7 +49,11 @@ class StorageManager:
         filename = file.filename
 
         # Process the document using the simplified function'
-        documents = await process_uploaded_file(file_data, filename)
+        try:
+            documents = await process_uploaded_file(file_data, filename, concurrency=1, silent_errors=False)
+        except ValueError as e:
+            # If file processing fails, return a proper error response
+            raise HTTPException(status_code=415, detail=str(e))
 
         # Add processed documents to vector store
         success = True
