@@ -205,39 +205,3 @@ class FileLoader(BaseLoader):
             )]
         else:
             raise ValueError(f"Unsupported file extension: {file_ext}")
-
-
-def load_file(
-    file_path: Union[str, Path],
-    file_uuid: Optional[str] = None,
-    password: str = '',
-    maxpages: int = 0,
-    caching: bool = True,
-    codec: str = 'utf-8',
-    laparams: Optional[LAParams] = None
-) -> List[Document]:
-    """
-    Convenience function to load a file using FileLoader.
-    
-    Args:
-        file_path: Path to the file to be loaded
-        file_uuid: UUID of the file (optional)
-        password: Password for encrypted PDF files
-        maxpages: Maximum number of pages to process in PDF files
-        caching: Whether to use caching for PDF processing
-        codec: Text encoding to use
-        laparams: Layout parameters for PDF text extraction
-    
-    Returns:
-        List of LangChain Document objects
-    """
-    loader = FileLoader(
-        file_path=file_path,
-        file_uuid=file_uuid,
-        password=password,
-        maxpages=maxpages,
-        caching=caching,
-        codec=codec,
-        laparams=laparams
-    )
-    return loader.load()

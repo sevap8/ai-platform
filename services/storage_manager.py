@@ -61,30 +61,30 @@ class StorageManager:
 
         return success
 
-    async def store_document(self, document: Document) -> bool:
-        """
-        Store a processed document in the system.
+    # async def store_document(self, document: Document) -> bool:
+    #     """
+    #     Store a processed document in the system.
 
-        Args:
-            document: The document to store
+    #     Args:
+    #         document: The document to store
 
-        Returns:
-            True if successful, False otherwise
-        """
-        return await self.vector_store.add_document(document)
+    #     Returns:
+    #         True if successful, False otherwise
+    #     """
+    #     return await self.vector_store.add_document(document)
 
-    async def retrieve_documents(self, query: str, top_k: int = 5) -> List[QueryResult]:
-        """
-        Retrieve documents based on a query.
+    # async def retrieve_documents(self, query: str, top_k: int = 5) -> List[QueryResult]:
+    #     """
+    #     Retrieve documents based on a query.
 
-        Args:
-            query: The search query
-            top_k: Number of top results to return
+    #     Args:
+    #         query: The search query
+    #         top_k: Number of top results to return
 
-        Returns:
-            List of matching documents with scores
-        """
-        return await self.vector_store.search(query, top_k)
+    #     Returns:
+    #         List of matching documents with scores
+    #     """
+    #     return await self.vector_store.search(query, top_k)
 
     async def close(self):
         """

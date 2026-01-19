@@ -78,8 +78,9 @@ async def retrieve_documents(
     Retrieve documents based on a query.
     """
     try:
-        storage_manager: StorageManager = request.app.state.storage_manager
-        results = await storage_manager.retrieve_documents(query, top_k)
+        results = None  # УДАЛИТЬ эту строку после
+        # storage_manager: StorageManager = request.app.state.storage_manager
+        # results = await storage_manager.retrieve_documents(query, top_k)
 
         return RetrieveResponse(
             query=query,
