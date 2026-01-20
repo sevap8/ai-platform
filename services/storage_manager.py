@@ -33,16 +33,13 @@ class StorageManager:
         self.vector_store = QdrantVectorStore()
         await self.vector_store._ensure_collection_exists()
 
-    async def store_document_from_file(self, file, document_id: str, chunk_size: int = 1000, chunk_overlap: int = 200, separator: str = "\n") -> dict:
+    async def store_document_from_file(self, file, document_id: str) -> dict:
         """
         Store a document from an uploaded file.
 
         Args:
             file: Uploaded file object
             document_id: ID to assign to the document
-            chunk_size: The maximum number of characters in each chunk.
-            chunk_overlap: Number of characters to overlap between chunks.
-            separator: The character to split on. Defaults to newline.
 
         Returns:
             Dictionary with 'success' status and 'chunks_count' if successful
@@ -53,6 +50,12 @@ class StorageManager:
 
         # Process the document using the simplified function'
         try:
+            # Get chunk parameters from environment or use defaults
+            import os
+            chunk_size = int(os.getenv('CHUNK_SIZE', '1000'))
+            chunk_overlap = int(os.getenv('CHUNK_OVERLAP', '200'))
+            separator = os.getenv('SEPARATOR', '\n')
+
             documents = await process_uploaded_file(
                 file_data,
                 filename,

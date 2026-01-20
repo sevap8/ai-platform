@@ -43,10 +43,7 @@ app = FastAPI(
 @app.post("/upload", response_model=UploadResponse)
 async def upload_document(
     request: Request,
-    file: UploadFile = File(...),
-    chunk_size: int = 1000,
-    chunk_overlap: int = 200,
-    separator: str = "\n"
+    file: UploadFile = File(...)
 ):
     """
     Upload a document to the system.
@@ -58,13 +55,7 @@ async def upload_document(
         document_id = str(uuid.uuid4())
 
         storage_manager: StorageManager = request.app.state.storage_manager
-        result = await storage_manager.store_document_from_file(
-            file,
-            document_id,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            separator=separator
-        )
+        result = await storage_manager.store_document_from_file(file, document_id)
 
         if not result['success']:
             raise HTTPException(status_code=500, detail="Failed to store document")
