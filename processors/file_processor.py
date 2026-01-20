@@ -13,6 +13,7 @@ from infrastructure.file_loader import FileLoader
 import asyncio
 import aiofiles
 from utils.file_validator import validate_file_type
+from .text_splitter import TextSplitter
 
 
 
@@ -20,16 +21,20 @@ class FileProcessor:
     """
     Handles parallel processing of files with error handling.
     """
-    def __init__(self, concurrency: int = 1, silent_errors: bool = False):
+    def __init__(self, concurrency: int = 1, silent_errors: bool = False, chunk_size: int = 1000, chunk_overlap: int = 200, separator: str = "\n"):
         """
         Initialize the FileProcessor.
 
         Args:
             concurrency: Number of concurrent file processing tasks
             silent_errors: Whether to suppress errors during processing
+            chunk_size: The maximum number of characters in each chunk.
+            chunk_overlap: Number of characters to overlap between chunks.
+            separator: The character to split on. Defaults to newline.
         """
         self.concurrency = concurrency
         self.silent_errors = silent_errors
+        self.text_splitter = TextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separator=separator)
         self.semaphore = asyncio.Semaphore(concurrency)
 
     async def process_files(self, file_paths: List[str]) -> List[Document]:
@@ -54,6 +59,9 @@ class FileProcessor:
             else:
                 all_docs.extend(result)
 
+        # Split documents if needed
+        all_docs = self.text_splitter.split_text(all_docs)
+
         return all_docs
 
     async def _process_single_file(self, file_path: str) -> List[Document]:
@@ -77,13 +85,18 @@ class FileProcessor:
                 return []
 
 
-async def process_uploaded_file(file_data: bytes, filename: str, concurrency: int = 1, silent_errors: bool = False) -> List[Document]:
+async def process_uploaded_file(file_data: bytes, filename: str, concurrency: int = 1, silent_errors: bool = False, chunk_size: int = 1000, chunk_overlap: int = 200, separator: str = "\n") -> List[Document]:
     """
     Process an uploaded file and return parsed documents.
 
     Args:
         file_data: Raw file data
         filename: Name of the uploaded file
+        concurrency: Number of concurrent file processing tasks
+        silent_errors: Whether to suppress errors during processing
+        chunk_size: The maximum number of characters in each chunk.
+        chunk_overlap: Number of characters to overlap between chunks.
+        separator: The character to split on. Defaults to newline.
 
     Returns:
         List of extracted documents
@@ -102,21 +115,16 @@ async def process_uploaded_file(file_data: bytes, filename: str, concurrency: in
 
     try:
         # Use the FileProcessor to process the file
-        processor = FileProcessor(concurrency=concurrency, silent_errors=silent_errors)
+        processor = FileProcessor(
+            concurrency=concurrency,
+            silent_errors=silent_errors,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            separator=separator
+        )
         docs = await processor.process_files([tmp_file_path])
 
-        # Convert LangChain documents to our core Document entities
-        documents = []
-        for i, lc_doc in enumerate(docs):
-            doc_id = f"{Path(tmp_file_path).stem}_{i}" if len(docs) > 1 else Path(tmp_file_path).stem
-            document = Document(
-                id=doc_id,
-                content=lc_doc.page_content,
-                metadata={**lc_doc.metadata, "source": filename}
-            )
-            documents.append(document)
-
-        return documents
+        return docs
     finally:
         # Clean up the temporary file
         os.unlink(tmp_file_path)

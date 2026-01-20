@@ -6,6 +6,7 @@ requires-python = ">=3.9"
 dependencies = [
     "langchain>=0.0.300",
     "langchain-community>=0.0.30",
+    "langchain-text-splitters>=0.0.1",
     "qdrant-client>=1.9.0",
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
@@ -19,5 +20,6 @@ dependencies = [
     "pandas>=1.5.0",
     "xlrd>=2.0.0",
     "python-dotenv>=1.0.0",
-    "aiofiles>=23.0.0"
+    "aiofiles>=23.0.0",
+    "nltk>=3.8.0"
 ]

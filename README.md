@@ -72,6 +72,7 @@ The project is organized based on principles of modularity and separation of con
 4. **API Ready**: Pre-configured FastAPI endpoints for document upload and retrieval
 5. **Multi-format Support**: Handles various file formats including PDF, Excel, text files, JSON, YAML, XML, and more
 6. **LangChain Integration**: Built with LangChain compatibility for advanced document processing
+7. **Configurable Text Chunking**: Adjustable parameters for splitting documents into chunks for better processing
 
 ## Usage
 
@@ -118,6 +119,28 @@ After starting the application, you can access:
 Application settings are managed through environment variables defined in the `.env` file.
 
 Key settings include:
-- Qdrant connection parameters
-- Application settings
-- Document processing limits
+
+### General Application Settings
+- `APP_HOST`: Host address for the application (default: 0.0.0.0)
+- `APP_PORT`: Port for the application (default: 8000)
+- `APP_RELOAD`: Enable/disable auto-reload on code changes (default: true)
+
+### Qdrant Settings
+- `QDRANT_URL`: URL for Qdrant server (default: localhost)
+- `QDRANT_PORT`: Port for Qdrant server (default: 6333)
+- `QDRANT_API_KEY`: API key for Qdrant (optional)
+- `QDRANT_COLLECTION_NAME`: Name of the collection in Qdrant (default: documents)
+
+### Document Processing Settings
+- `MAX_FILE_SIZE_MB`: Maximum allowed file size in MB (default: 10)
+- `ALLOWED_EXTENSIONS`: Comma-separated list of allowed file extensions (optional, uses default if not set)
+
+### Text Chunking Settings
+- `CHUNK_SIZE`: Size of text chunks in characters (default: 1000)
+- `CHUNK_OVERLAP`: Overlap between chunks in characters (default: 200)
+- `SEPARATOR`: Separator character for splitting text (default: \n)
+
+To customize these settings:
+1. Copy the example file: `cp .env.example .env`
+2. Modify the values in `.env` as needed
+3. Restart the application for changes to take effect

@@ -49,10 +49,12 @@ class UploadResponse(BaseModel):
         document_id: ID of the uploaded document
         status: Status of the upload operation
         message: Human-readable message about the operation
+        chunks_count: Number of text chunks created from the document
     """
     document_id: str
     status: str
     message: str
+    chunks_count: int = 0
 
 
 class RetrieveResponse(BaseModel):
